@@ -1,0 +1,46 @@
+# (Paso 5: Nombre del archivo)
+name: Generar Código OpenAPI
+
+# (Paso 6: Disparar con push a main)
+on:
+  push:
+    branches: [ main ]
+
+# (Paso 7: Definir el job 'generar-codigo')
+jobs:
+  generar-codigo:
+    # (Paso 8: Ejecutar en Ubuntu)
+    runs-on: ubuntu-latest
+
+    # (Paso 9: Lista de pasos)
+    steps:
+      # Paso 9.1: Descargar el código
+      - name: 1. Descargar el código del repositorio
+        uses: actions/checkout@v4
+
+      # Paso 9.2: Configurar Java 17
+      - name: 2. Configurar Java 17 (Temurin)
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      # Paso 9.3: Ejecutar el generador
+      - name: 3. Generar código con OpenAPI Generator
+        # Nota: Usamos 'python-flask'. Si tu generador se llama
+        # 'pythonflask' (sin guion), ajusta el comando.
+        run: java -jar openapi-generator-cli.jar generate -i openapi.yaml -g python-flask -o ./openapi_server
+
+      # Paso 9.4: Comprimir la salida
+      - name: 4. Comprimir el código generado
+        # El runner 'ubuntu-latest' ya incluye la utilidad 'zip'
+        run: zip -r openapi_server.zip openapi_server
+
+      # Paso 9.5: Subir el .zip como un artefacto
+      - name: 5. Subir el artefacto (openapi_server.zip)
+        uses: actions/upload-artifact@v4
+        with:
+          # El nombre que tendrá el artefacto descargable
+          name: codigo-servidor-python
+          # El archivo o carpeta a subir
+          path: openapi_server.zip
